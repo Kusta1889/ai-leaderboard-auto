@@ -287,14 +287,36 @@ def generate_html(data: dict) -> str:
         score = item.get("score", default_score) or ""
         return model, score
     
+    def get_provider_class(model_name):
+        """Detectar el proveedor y devolver la clase CSS correspondiente"""
+        model_lower = model_name.lower()
+        if "claude" in model_lower or "sonnet" in model_lower or "opus" in model_lower:
+            return "provider-claude"
+        elif "gemini" in model_lower:
+            return "provider-gemini"
+        elif "gpt" in model_lower or "o3" in model_lower or "o1" in model_lower:
+            return "provider-openai"
+        elif "llama" in model_lower or "meta" in model_lower:
+            return "provider-meta"
+        elif "deepseek" in model_lower:
+            return "provider-deepseek"
+        elif "veo" in model_lower:
+            return "provider-google"
+        elif "flux" in model_lower:
+            return "provider-flux"
+        elif "hunyuan" in model_lower:
+            return "provider-hunyuan"
+        else:
+            return "provider-other"
+    
     def format_cell(model, score, css_class=""):
         """Formatear una celda de la tabla"""
         if model == "—":
             return '<td class="na">—</td>'
         
+        provider_class = get_provider_class(model)
         score_html = f'<span class="score">{score}</span>' if score else ""
-        class_attr = f' class="{css_class}"' if css_class else ""
-        return f'<td><span class="model"{class_attr}>{model}</span>{score_html}</td>'
+        return f'<td><span class="model {provider_class}">{model}</span>{score_html}</td>'
     
     # Construir las filas de la tabla
     rows = []
@@ -629,6 +651,35 @@ def generate_html(data: dict) -> str:
         .na {{
             color: #555;
             font-style: italic;
+        }}
+        
+        /* Colores por proveedor de IA */
+        .provider-claude {{
+            color: #ff7b54 !important;  /* Naranja Anthropic */
+        }}
+        .provider-gemini {{
+            color: #4285f4 !important;  /* Azul Google */
+        }}
+        .provider-openai {{
+            color: #10a37f !important;  /* Verde OpenAI */
+        }}
+        .provider-meta {{
+            color: #a855f7 !important;  /* Violeta Meta */
+        }}
+        .provider-deepseek {{
+            color: #06b6d4 !important;  /* Cyan DeepSeek */
+        }}
+        .provider-google {{
+            color: #34a853 !important;  /* Verde Google (Veo) */
+        }}
+        .provider-flux {{
+            color: #ec4899 !important;  /* Rosa Flux */
+        }}
+        .provider-hunyuan {{
+            color: #f59e0b !important;  /* Amarillo Hunyuan */
+        }}
+        .provider-other {{
+            color: #00d4ff !important;  /* Cyan default */
         }}
         
         .legend {{
