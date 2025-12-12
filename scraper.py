@@ -271,7 +271,7 @@ def generate_html(data: dict) -> str:
     llm_stats = data.get("llm_stats", {})
     
     now = datetime.now()
-    date_str = now.strftime("%d de %B de %Y").replace(
+    date_str = now.strftime("%d de %B de %Y a las %H:%M hs").replace(
         "January", "Enero").replace("February", "Febrero").replace(
         "March", "Marzo").replace("April", "Abril").replace(
         "May", "Mayo").replace("June", "Junio").replace(
