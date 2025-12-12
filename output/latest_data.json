@@ -1,0 +1,128 @@
+{
+  "lmarena": {
+    "text": {
+      "model": "Gemini 3 Pro",
+      "score": "1501 Elo"
+    },
+    "coding": {
+      "model": "Claude 3.7 Sonnet",
+      "score": "1356 Elo"
+    },
+    "vision": {
+      "model": "Gemini 3 Pro",
+      "score": "1328 Elo"
+    },
+    "text_to_image": {
+      "model": "Nano Banana Pro",
+      "score": ""
+    },
+    "text_to_video": {
+      "model": "Veo 3.1",
+      "score": "1400+ Elo"
+    }
+  },
+  "seal": {
+    "overall": {
+      "model": "Gemini 3 Pro",
+      "score": ""
+    },
+    "coding": {
+      "model": "Claude Opus 4.1",
+      "score": "SWE-Bench Pro: 22.7%"
+    },
+    "reasoning": {
+      "model": "Gemini 3 Pro",
+      "score": "HLE: 41%"
+    },
+    "multilingual": {
+      "model": "GPT-4o",
+      "score": ""
+    }
+  },
+  "artificial_analysis": {
+    "overall": {
+      "model": "Gemini 3 Pro Preview (high)",
+      "score": ""
+    }
+  },
+  "vellum": {
+    "overall": {
+      "model": "Gemini 3 Pro",
+      "score": ""
+    },
+    "coding": {
+      "model": "Claude Sonnet 4.5",
+      "score": "SWE-Bench: 82%"
+    },
+    "math": {
+      "model": "Gemini 3 Pro",
+      "score": "AIME: 100%"
+    },
+    "reasoning": {
+      "model": "GPT-oss-120b",
+      "score": "GPQA: 98.7%"
+    },
+    "vision": {
+      "model": "Gemini 3 Pro",
+      "score": ""
+    },
+    "expert": {
+      "model": "Gemini 3 Pro",
+      "score": "HLE: 45.8%"
+    },
+    "multilingual": {
+      "model": "Gemini 3 Pro",
+      "score": "MMMLU: 91.8%"
+    },
+    "speed": {
+      "model": "Llama 4 Scout",
+      "score": "2600 t/s"
+    },
+    "value": {
+      "model": "DeepSeek V3.2",
+      "score": ""
+    }
+  },
+  "llm_stats": {
+    "overall": {
+      "model": "Gemini 3 Pro",
+      "score": ""
+    },
+    "coding": {
+      "model": "Claude Sonnet 4.5",
+      "score": ""
+    },
+    "math": {
+      "model": "Gemini 3 Pro",
+      "score": ""
+    },
+    "reasoning": {
+      "model": "Gemini 3 Pro",
+      "score": ""
+    },
+    "vision": {
+      "model": "GPT-5.1",
+      "score": ""
+    },
+    "multilingual": {
+      "model": "Claude Opus 4.5",
+      "score": ""
+    },
+    "text_to_image": {
+      "model": "Hunyuan Image 3.0",
+      "score": ""
+    },
+    "text_to_video": {
+      "model": "Veo 3.1",
+      "score": ""
+    },
+    "speed": {
+      "model": "Llama 4 Scout",
+      "score": ""
+    },
+    "value": {
+      "model": "DeepSeek V3.2",
+      "score": ""
+    }
+  }
+}
