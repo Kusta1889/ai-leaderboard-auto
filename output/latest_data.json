@@ -1,5 +1,26 @@
 {
-  "lmarena": {},
+  "lmarena": {
+    "text": {
+      "model": "Gemini 3 Pro",
+      "score": "1501 Elo"
+    },
+    "coding": {
+      "model": "Claude 3.7 Sonnet",
+      "score": "1356 Elo"
+    },
+    "vision": {
+      "model": "Gemini 3 Pro",
+      "score": "1328 Elo"
+    },
+    "text_to_image": {
+      "model": "Nano Banana Pro",
+      "score": ""
+    },
+    "text_to_video": {
+      "model": "Veo 3.1",
+      "score": "1400+ Elo"
+    }
+  },
   "seal": {
     "overall": {
       "model": "Gemini 3 Pro",
