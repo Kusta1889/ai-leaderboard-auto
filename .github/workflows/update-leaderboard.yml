@@ -1,0 +1,57 @@
+name: 🤖 Update AI Leaderboard
+
+# Cuándo se ejecuta:
+on:
+  # Automático: todos los días a las 8:00 AM (hora UTC)
+  # Eso es ~5:00 AM en Argentina (UTC-3)
+  schedule:
+    - cron: '0 8 * * *'
+  
+  # Manual: permite ejecutarlo cuando quieras desde GitHub
+  workflow_dispatch:
+
+# Permisos para poder hacer commits
+permissions:
+  contents: write
+
+jobs:
+  update-leaderboard:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Descargar el código del repo
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
+      # 2. Instalar Python
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      # 3. Instalar dependencias
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install chromium
+          playwright install-deps
+      
+      # 4. Ejecutar el scraper
+      - name: 🔄 Run scraper
+        run: python scraper.py
+      
+      # 5. Subir los cambios a GitHub
+      - name: 📤 Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          
+          # Agregar archivos generados
+          git add output/
+          
+          # Crear commit (si hay cambios)
+          git diff --staged --quiet || git commit -m "🤖 Auto-update $(date +'%Y-%m-%d %H:%M')"
+          
+          # Subir a GitHub
+          git push
