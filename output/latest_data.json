@@ -27,20 +27,20 @@
   },
   "livebench": {
     "overall": {
-      "model": "GPT-5.2 High",
-      "score": "74.86"
+      "model": "GPT-5.1 Codex Max XHigh",
+      "score": "76.21"
     },
     "reasoning": {
-      "model": "GPT-5.2 High",
-      "score": "74.86"
+      "model": "GPT-5.1 Codex Max XHigh",
+      "score": "90.80"
     },
     "coding": {
-      "model": "GPT-5.2 High",
-      "score": "74.86"
+      "model": "Claude 4 Sonnet",
+      "score": "80.74"
     },
     "math": {
-      "model": "GPT-5.2 High",
-      "score": "74.86"
+      "model": "Claude 4.5 Opus Thinking High Effort",
+      "score": "94.52"
     }
   },
   "openrouter": {

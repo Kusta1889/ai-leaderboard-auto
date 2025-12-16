@@ -126,18 +126,10 @@ class LeaderboardScraper:
         return results
     
     def scrape_livebench(self, page) -> Dict:
-        """Scrape LiveBench.ai - benchmark contamination-free"""
+        """Scrape LiveBench.ai - extract top model per category from table"""
         print("📊 Scraping LiveBench...")
         
         results = {}
-        
-        # Categorías a extraer en LiveBench (Global, Reasoning, Coding, Mathematics)
-        categories = {
-            "overall": None,  # Global average
-            "reasoning": "Reasoning",
-            "coding": "Coding", 
-            "math": "Mathematics"
-        }
         
         try:
             page.goto("https://livebench.ai/#/", timeout=30000)
@@ -154,39 +146,111 @@ class LeaderboardScraper:
             page.evaluate("window.scrollBy(0, 500)")
             page.wait_for_timeout(3000)
             
-            # Extraer modelo top general
+            # Extraer datos de la tabla - buscar headers y encontrar top por columna
             data = page.evaluate('''() => {
-                const bodyText = document.body.innerText;
-                const modelNames = [
-                    "GPT-5.2", "GPT-5.1", "GPT-5",
-                    "Claude 4.5 Opus", "Claude 4.5",
-                    "Gemini 3 Pro", "Gemini 3"
-                ];
+                const result = {};
                 
-                for (const name of modelNames) {
-                    const idx = bodyText.indexOf(name);
-                    if (idx !== -1) {
-                        let end = idx + name.length;
-                        while (end < bodyText.length && end < idx + 50) {
-                            const c = bodyText[end];
-                            if (c === '\\n' || c === '\\t' || c === ',') break;
-                            end++;
-                        }
-                        const model = bodyText.substring(idx, end).trim().substring(0, 40);
-                        const nearbyText = bodyText.substring(Math.max(0, idx - 50), idx + 100);
-                        const scoreMatch = nearbyText.match(/(\\d+\\.\\d+)/);
-                        const score = scoreMatch ? scoreMatch[1] : "";
-                        return {model, score};
+                // Buscar tabla de leaderboard
+                const tables = document.querySelectorAll('table');
+                if (!tables || tables.length === 0) return result;
+                
+                // Usar la primera tabla que tenga datos
+                let mainTable = null;
+                for (const table of tables) {
+                    if (table.querySelectorAll('tr').length > 2) {
+                        mainTable = table;
+                        break;
                     }
                 }
-                return null;
+                if (!mainTable) return result;
+                
+                // Obtener headers
+                const headerRow = mainTable.querySelector('thead tr') || mainTable.querySelector('tr');
+                if (!headerRow) return result;
+                
+                const headers = Array.from(headerRow.querySelectorAll('th, td')).map(h => h.innerText.trim().toLowerCase());
+                
+                // Mapeo de categorías
+                const categoryMap = {
+                    'global': 'overall',
+                    'average': 'overall',
+                    'reasoning': 'reasoning',
+                    'coding': 'coding',
+                    'agentic': 'coding',
+                    'math': 'math',
+                    'mathematics': 'math'
+                };
+                
+                // Encontrar índices de columnas relevantes
+                const columnIndices = {};
+                headers.forEach((h, idx) => {
+                    for (const [keyword, cat] of Object.entries(categoryMap)) {
+                        if (h.includes(keyword) && !columnIndices[cat]) {
+                            columnIndices[cat] = idx;
+                        }
+                    }
+                });
+                
+                // Encontrar columna de modelo (primera columna generalmente)
+                let modelColIdx = 0;
+                headers.forEach((h, idx) => {
+                    if (h.includes('model') || h.includes('name')) {
+                        modelColIdx = idx;
+                    }
+                });
+                
+                // Obtener filas de datos
+                const rows = mainTable.querySelectorAll('tbody tr');
+                if (rows.length === 0) return result;
+                
+                // Para cada categoría, encontrar el modelo con el valor más alto
+                for (const [cat, colIdx] of Object.entries(columnIndices)) {
+                    let maxVal = -1;
+                    let topModel = null;
+                    let topScore = '';
+                    
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length <= colIdx) return;
+                        
+                        const modelName = cells[modelColIdx]?.innerText?.trim()?.split('\\n')[0] || '';
+                        const valueText = cells[colIdx]?.innerText?.trim() || '';
+                        const valueMatch = valueText.match(/([\\d.]+)/);
+                        
+                        if (valueMatch && modelName) {
+                            const val = parseFloat(valueMatch[1]);
+                            if (val > maxVal) {
+                                maxVal = val;
+                                topModel = modelName.substring(0, 40);
+                                topScore = valueMatch[1];
+                            }
+                        }
+                    });
+                    
+                    if (topModel) {
+                        result[cat] = {model: topModel, score: topScore};
+                    }
+                }
+                
+                // Si no encontramos por tabla, usar fallback con texto
+                if (Object.keys(result).length === 0) {
+                    const text = document.body.innerText;
+                    const models = ['Claude 4.5', 'GPT-5.2', 'Gemini 3'];
+                    for (const m of models) {
+                        if (text.includes(m)) {
+                            result.overall = {model: m, score: ''};
+                            break;
+                        }
+                    }
+                }
+                
+                return result;
             }''')
             
-            if data and data.get("model"):
-                # Usar el mismo modelo top para todas las categorías de LiveBench
-                for cat in categories.keys():
-                    results[cat] = {"model": data["model"], "score": data.get("score", "")}
-                print(f"    ✓ Top: {data['model']}")
+            if data and len(data) > 0:
+                for cat, info in data.items():
+                    results[cat] = info
+                    print(f"    ✓ {cat}: {info['model']}")
             else:
                 print("    ⚠ Sin datos")
                 
@@ -194,6 +258,7 @@ class LeaderboardScraper:
             print(f"    ✗ Error: {e}")
         
         return results
+
     
     def scrape_openrouter(self, page) -> Dict:
         """Scrape OpenRouter Rankings - Overall, Programming, Images"""
