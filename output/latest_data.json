@@ -1,64 +1,45 @@
 {
-  "lmarena": {},
-  "seal": {
-    "overall": {
-      "model": "Gemini 3 Pro",
-      "score": ""
+  "lmarena": {
+    "text": {
+      "model": "gemini-3-pro",
+      "score": "1492 Elo"
     },
     "coding": {
-      "model": "Claude Opus 4.1",
-      "score": "SWE-Bench Pro: 22.7%"
+      "model": "claude-opus-4-5-thinking",
+      "score": "1519 Elo"
     },
-    "reasoning": {
-      "model": "Gemini 3 Pro",
-      "score": "HLE: 41%"
+    "vision": {
+      "model": "gemini-3-pro",
+      "score": "1314 Elo"
     },
-    "multilingual": {
-      "model": "GPT-4o",
+    "text_to_image": {
+      "model": "gemini-3-pro-image",
+      "score": "1236 Elo"
+    },
+    "text_to_video": {
+      "model": "veo-3.1-fast-audio",
+      "score": "1383 Elo"
+    },
+    "image_edit": {
+      "model": "flux-2-pro",
+      "score": ""
+    }
+  },
+  "livebench": {
+    "overall": {
+      "model": "GPT-5.1 Codex Max XHigh",
+      "score": "5.1"
+    }
+  },
+  "openrouter": {
+    "overall": {
+      "model": "Gemini 2.5 Flash",
       "score": ""
     }
   },
   "artificial_analysis": {
     "overall": {
-      "model": "Gemini 3 Pro Preview (high)",
-      "score": ""
-    }
-  },
-  "vellum": {
-    "overall": {
-      "model": "Gemini 3 Pro",
-      "score": ""
-    },
-    "coding": {
-      "model": "Claude Sonnet 4.5",
-      "score": "SWE-Bench: 82%"
-    },
-    "math": {
-      "model": "Gemini 3 Pro",
-      "score": "AIME: 100%"
-    },
-    "reasoning": {
-      "model": "GPT-oss-120b",
-      "score": "GPQA: 98.7%"
-    },
-    "vision": {
-      "model": "Gemini 3 Pro",
-      "score": ""
-    },
-    "expert": {
-      "model": "Gemini 3 Pro",
-      "score": "HLE: 45.8%"
-    },
-    "multilingual": {
-      "model": "Gemini 3 Pro",
-      "score": "MMMLU: 91.8%"
-    },
-    "speed": {
-      "model": "Llama 4 Scout",
-      "score": "2600 t/s"
-    },
-    "value": {
-      "model": "DeepSeek V3.2",
+      "model": "Gemini 3 Pro Preview (high) and  GPT",
       "score": ""
     }
   },
@@ -68,39 +49,11 @@
       "score": ""
     },
     "coding": {
-      "model": "Claude Sonnet 4.5",
+      "model": "Gemini 3 Pro",
       "score": ""
     },
     "math": {
       "model": "Gemini 3 Pro",
-      "score": ""
-    },
-    "reasoning": {
-      "model": "Gemini 3 Pro",
-      "score": ""
-    },
-    "vision": {
-      "model": "GPT-5.1",
-      "score": ""
-    },
-    "multilingual": {
-      "model": "Claude Opus 4.5",
-      "score": ""
-    },
-    "text_to_image": {
-      "model": "Hunyuan Image 3.0",
-      "score": ""
-    },
-    "text_to_video": {
-      "model": "Veo 3.1",
-      "score": ""
-    },
-    "speed": {
-      "model": "Llama 4 Scout",
-      "score": ""
-    },
-    "value": {
-      "model": "DeepSeek V3.2",
       "score": ""
     }
   }
