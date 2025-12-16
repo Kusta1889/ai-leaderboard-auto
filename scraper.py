@@ -376,9 +376,16 @@ def generate_html(data: dict) -> str:
     aa = data.get("artificial_analysis", {})
     llm_stats = data.get("llm_stats", {})
     
-    now = datetime.utcnow()
+    from datetime import timedelta
+    # Hora Argentina (UTC-3)
+    now = datetime.utcnow() - timedelta(hours=3)
     date_str = now.strftime("%d de %B de %Y a las %H:%M hs").replace(
-        "December", "Diciembre").replace("January", "Enero")
+        "December", "Diciembre").replace("January", "Enero").replace(
+        "February", "Febrero").replace("March", "Marzo").replace(
+        "April", "Abril").replace("May", "Mayo").replace(
+        "June", "Junio").replace("July", "Julio").replace(
+        "August", "Agosto").replace("September", "Septiembre").replace(
+        "October", "Octubre").replace("November", "Noviembre")
     
     def cell(source, key):
         item = source.get(key, {})
@@ -534,7 +541,7 @@ def generate_html(data: dict) -> str:
             <div class="legend-item"><a href="https://llm-stats.com/" target="_blank">📉 LLM-Stats</a></div>
         </div>
         
-        <p class="footer">🤖 Generado {now.strftime("%Y-%m-%d %H:%M")} UTC | "—" = no disponible</p>
+        <p class="footer">🤖 Generado {now.strftime("%Y-%m-%d %H:%M")} Argentina | "—" = no disponible</p>
     </div>
 </body>
 </html>'''
