@@ -386,8 +386,35 @@ def generate_html(data: dict) -> str:
         s = item.get("score", "")
         if m == "—":
             return '<td class="na">—</td>'
+        
+        # Detectar empresa por nombre del modelo
+        model_lower = m.lower()
+        if 'gemini' in model_lower or 'google' in model_lower:
+            color_class = "google"
+        elif 'gpt' in model_lower or 'openai' in model_lower:
+            color_class = "openai"
+        elif 'claude' in model_lower or 'anthropic' in model_lower:
+            color_class = "anthropic"
+        elif 'llama' in model_lower or 'meta' in model_lower:
+            color_class = "meta"
+        elif 'deepseek' in model_lower:
+            color_class = "deepseek"
+        elif 'flux' in model_lower:
+            color_class = "flux"
+        elif 'midjourney' in model_lower:
+            color_class = "midjourney"
+        elif 'dall-e' in model_lower or 'dalle' in model_lower:
+            color_class = "openai"
+        elif 'stable' in model_lower or 'stability' in model_lower:
+            color_class = "stability"
+        elif 'ideogram' in model_lower:
+            color_class = "ideogram"
+        else:
+            color_class = "default"
+        
         score_html = f'<span class="score">{s}</span>' if s else ""
-        return f'<td><span class="model">{m[:35]}</span>{score_html}</td>'
+        return f'<td><span class="model {color_class}">{m[:35]}</span>{score_html}</td>'
+
     
     rows = f'''
     <tr>
@@ -454,7 +481,17 @@ def generate_html(data: dict) -> str:
         td:first-child {{ background: #252538; font-weight: 600; color: #b8b8d1; text-align: left; padding-left: 16px; }}
         tr:hover td {{ background: #2a2a40; }}
         tr:hover td:first-child {{ background: #2d2d48; }}
-        .model {{ font-weight: 700; color: #00d4ff; }}
+        .model {{ font-weight: 700; }}
+        .model.google {{ color: #4285F4; }}
+        .model.openai {{ color: #10A37F; }}
+        .model.anthropic {{ color: #D97706; }}
+        .model.meta {{ color: #0866FF; }}
+        .model.deepseek {{ color: #7C3AED; }}
+        .model.flux {{ color: #EC4899; }}
+        .model.midjourney {{ color: #FF6B6B; }}
+        .model.stability {{ color: #8B5CF6; }}
+        .model.ideogram {{ color: #14B8A6; }}
+        .model.default {{ color: #00d4ff; }}
         .score {{ font-size: 0.75rem; color: #888; display: block; margin-top: 2px; }}
         .na {{ color: #555; font-style: italic; }}
         .legend {{ margin-top: 30px; padding: 20px; background: #1e1e2f; border-radius: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }}
