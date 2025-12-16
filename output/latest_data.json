@@ -27,19 +27,51 @@
   },
   "livebench": {
     "overall": {
-      "model": "GPT-5.1 Codex Max XHigh",
-      "score": "5.1"
+      "model": "GPT-5.2 High",
+      "score": "74.86"
+    },
+    "reasoning": {
+      "model": "GPT-5.2 High",
+      "score": "74.86"
+    },
+    "coding": {
+      "model": "GPT-5.2 High",
+      "score": "74.86"
+    },
+    "math": {
+      "model": "GPT-5.2 High",
+      "score": "74.86"
     }
   },
   "openrouter": {
     "overall": {
       "model": "Gemini 2.5 Flash",
       "score": ""
+    },
+    "coding": {
+      "model": "Gemini 2.5 Flash",
+      "score": ""
+    },
+    "image": {
+      "model": "Gemini 2.5 Flash",
+      "score": ""
     }
   },
   "artificial_analysis": {
     "overall": {
-      "model": "Gemini 3 Pro Preview (high) and  GPT",
+      "model": "Gemini 3 Pro Preview (high) and",
+      "score": ""
+    },
+    "coding": {
+      "model": "Gemini 3 Pro Preview (high) and",
+      "score": ""
+    },
+    "math": {
+      "model": "Gemini 3 Pro Preview (high) and",
+      "score": ""
+    },
+    "image": {
+      "model": "FLUX.1 Kontext[max]",
       "score": ""
     }
   },

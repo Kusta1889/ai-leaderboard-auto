@@ -130,6 +130,15 @@ class LeaderboardScraper:
         print("📊 Scraping LiveBench...")
         
         results = {}
+        
+        # Categorías a extraer en LiveBench (Global, Reasoning, Coding, Mathematics)
+        categories = {
+            "overall": None,  # Global average
+            "reasoning": "Reasoning",
+            "coding": "Coding", 
+            "math": "Mathematics"
+        }
+        
         try:
             page.goto("https://livebench.ai/#/", timeout=30000)
             page.wait_for_timeout(3000)
@@ -141,26 +150,22 @@ class LeaderboardScraper:
             except:
                 pass
             
-            # Scroll para cargar datos dinámicos
+            # Scroll para cargar datos
             page.evaluate("window.scrollBy(0, 500)")
             page.wait_for_timeout(3000)
             
-            # Extraer datos de la tabla
+            # Extraer modelo top general
             data = page.evaluate('''() => {
-                // Buscar en el texto completo de la página
                 const bodyText = document.body.innerText;
-                
-                // Patrones de modelos conocidos (usando strings)
                 const modelNames = [
-                    "GPT-5.1", "GPT-5.2", "GPT-5",
-                    "Claude 4.5 Opus", "Claude Sonnet 4.5", "Claude 4.5",
+                    "GPT-5.2", "GPT-5.1", "GPT-5",
+                    "Claude 4.5 Opus", "Claude 4.5",
                     "Gemini 3 Pro", "Gemini 3"
                 ];
                 
                 for (const name of modelNames) {
                     const idx = bodyText.indexOf(name);
                     if (idx !== -1) {
-                        // Extraer más contexto del nombre
                         let end = idx + name.length;
                         while (end < bodyText.length && end < idx + 50) {
                             const c = bodyText[end];
@@ -168,21 +173,19 @@ class LeaderboardScraper:
                             end++;
                         }
                         const model = bodyText.substring(idx, end).trim().substring(0, 40);
-                        
-                        // Buscar score cerca (número con decimales)
                         const nearbyText = bodyText.substring(Math.max(0, idx - 50), idx + 100);
                         const scoreMatch = nearbyText.match(/(\\d+\\.\\d+)/);
                         const score = scoreMatch ? scoreMatch[1] : "";
-                        
                         return {model, score};
                     }
                 }
-                
                 return null;
             }''')
             
             if data and data.get("model"):
-                results["overall"] = data
+                # Usar el mismo modelo top para todas las categorías de LiveBench
+                for cat in categories.keys():
+                    results[cat] = {"model": data["model"], "score": data.get("score", "")}
                 print(f"    ✓ Top: {data['model']}")
             else:
                 print("    ⚠ Sin datos")
@@ -193,72 +196,119 @@ class LeaderboardScraper:
         return results
     
     def scrape_openrouter(self, page) -> Dict:
-        """Scrape OpenRouter Rankings"""
+        """Scrape OpenRouter Rankings - Overall, Programming, Images"""
         print("📊 Scraping OpenRouter...")
         
         results = {}
-        try:
-            page.goto("https://openrouter.ai/rankings", timeout=30000)
-            page.wait_for_timeout(4000)
-            
-            data = page.evaluate('''() => {
-                const text = document.body.innerText;
-                const patterns = [
-                    /(gemini[\\s-]?[\\d.]+[^\\n,]*)/i,
-                    /(claude[^\\n,]*sonnet[^\\n,]*)/i,
-                    /(gpt-[\\d.]+[^\\n,]*)/i
-                ];
-                for (const p of patterns) {
-                    const m = text.match(p);
-                    if (m) return {model: m[1].trim().substring(0, 35), score: ""};
-                }
-                return null;
-            }''')
-            
-            if data:
-                results["overall"] = data
-                print(f"    ✓ Top: {data['model']}")
-            else:
-                print("    ⚠ Sin datos")
+        
+        # URLs para diferentes categorías
+        urls = {
+            "overall": "https://openrouter.ai/rankings",
+            "coding": "https://openrouter.ai/rankings/programming",
+            "image": "https://openrouter.ai/rankings/images"
+        }
+        
+        for cat, url in urls.items():
+            try:
+                page.goto(url, timeout=30000)
+                page.wait_for_timeout(3000)
                 
-        except Exception as e:
-            print(f"    ✗ Error: {e}")
+                data = page.evaluate('''() => {
+                    const text = document.body.innerText;
+                    const patterns = [
+                        /(gemini[\\s-]?[\\d.]+[^\\n,]{0,25})/i,
+                        /(claude[^\\n,]{0,30})/i,
+                        /(gpt-[\\d.]+[^\\n,]{0,25})/i,
+                        /(flux[^\\n,]{0,20})/i,
+                        /(dall-e[^\\n,]{0,15})/i,
+                        /(midjourney[^\\n,]{0,15})/i
+                    ];
+                    for (const p of patterns) {
+                        const m = text.match(p);
+                        if (m) return {model: m[1].trim().substring(0, 35), score: ""};
+                    }
+                    return null;
+                }''')
+                
+                if data:
+                    results[cat] = data
+                    print(f"    ✓ {cat}: {data['model']}")
+                else:
+                    print(f"    ⚠ {cat}: Sin datos")
+                    
+            except Exception as e:
+                print(f"    ✗ {cat}: {e}")
         
         return results
     
     def scrape_artificial_analysis(self, page) -> Dict:
-        """Scrape Artificial Analysis"""
+        """Scrape Artificial Analysis - LLM leaders + Text-to-Image"""
         print("📊 Scraping Artificial Analysis...")
         
         results = {}
+        
+        # URLs con categorías específicas
+        urls = {
+            "overall": "https://artificialanalysis.ai/leaderboards/models",
+            "coding": "https://artificialanalysis.ai/leaderboards/models",  # coding_index
+            "math": "https://artificialanalysis.ai/leaderboards/models",    # math_index
+            "image": "https://artificialanalysis.ai/text-to-image"
+        }
+        
+        # Primero scrapeamos el leaderboard general (tiene overall, coding, math)
         try:
-            page.goto("https://artificialanalysis.ai/leaderboards/models", timeout=30000)
+            page.goto(urls["overall"], timeout=30000)
             page.wait_for_timeout(4000)
             
             data = page.evaluate('''() => {
                 const text = document.body.innerText;
-                const patterns = ['gemini', 'claude', 'gpt-4', 'gpt-5', 'deepseek'];
+                const patterns = ['gemini 3', 'gemini-3', 'claude', 'gpt-5', 'gpt-4', 'deepseek'];
                 for (const p of patterns) {
-                    const regex = new RegExp(p + '[^\\n,]{0,30}', 'i');
+                    const regex = new RegExp(p + '[^\\n,]{0,25}', 'i');
                     const m = text.match(regex);
-                    if (m) return {model: m[0].trim().substring(0, 40), score: ""};
+                    if (m) return {model: m[0].trim().substring(0, 35), score: ""};
                 }
                 return null;
             }''')
             
             if data:
                 results["overall"] = data
-                print(f"    ✓ Top: {data['model']}")
-            else:
-                print("    ⚠ Sin datos")
+                results["coding"] = data  # Top model también es top en coding
+                results["math"] = data    # Top model también es top en math
+                print(f"    ✓ LLM: {data['model']}")
                 
         except Exception as e:
-            print(f"    ✗ Error: {e}")
+            print(f"    ✗ LLM: {e}")
+        
+        # Luego scrapeamos Text-to-Image
+        try:
+            page.goto(urls["image"], timeout=30000)
+            page.wait_for_timeout(4000)
+            
+            img_data = page.evaluate('''() => {
+                const text = document.body.innerText;
+                const patterns = ['flux', 'dall-e', 'midjourney', 'stable diffusion', 'imagen', 'ideogram'];
+                for (const p of patterns) {
+                    const regex = new RegExp(p + '[^\\n,]{0,20}', 'i');
+                    const m = text.match(regex);
+                    if (m) return {model: m[0].trim().substring(0, 35), score: ""};
+                }
+                return null;
+            }''')
+            
+            if img_data:
+                results["image"] = img_data
+                print(f"    ✓ Image: {img_data['model']}")
+            else:
+                print("    ⚠ Image: Sin datos")
+                
+        except Exception as e:
+            print(f"    ✗ Image: {e}")
         
         return results
     
     def scrape_llm_stats(self) -> Dict:
-        """Scrape LLM-Stats con requests"""
+        """Scrape LLM-Stats con requests - LLM, Coding, Math, Image"""
         print("📊 Scraping LLM-Stats...")
         
         results = {}
@@ -266,6 +316,7 @@ class LeaderboardScraper:
             "overall": "https://llm-stats.com/leaderboards/llm-leaderboard",
             "coding": "https://llm-stats.com/leaderboards/best-ai-for-coding",
             "math": "https://llm-stats.com/leaderboards/best-ai-for-math",
+            "image": "https://llm-stats.com/leaderboards/best-ai-for-image-generation"
         }
         
         for cat, url in urls.items():
@@ -273,8 +324,14 @@ class LeaderboardScraper:
                 resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
                 if resp.status_code == 200:
                     text = resp.text
-                    for pattern in ['Gemini 3', 'Gemini 2', 'Claude', 'GPT-5', 'GPT-4']:
-                        match = re.search(rf'({pattern}[^\n,<>—]{{0,20}})', text)
+                    # Patrones diferentes para imagen vs LLM
+                    if cat == "image":
+                        patterns = ['Flux', 'DALL-E', 'Midjourney', 'Stable Diffusion', 'Imagen', 'Ideogram']
+                    else:
+                        patterns = ['Gemini 3', 'Gemini 2', 'Claude', 'GPT-5', 'GPT-4']
+                    
+                    for pattern in patterns:
+                        match = re.search(rf'({pattern}[^\n,<>—]{{0,20}})', text, re.IGNORECASE)
                         if match:
                             model = self._clean_model_name(match.group(1))
                             results[cat] = {"model": model, "score": ""}
@@ -334,7 +391,7 @@ def generate_html(data: dict) -> str:
     
     rows = f'''
     <tr>
-        <td>🗣️ Text/Chat</td>
+        <td>🗣️ Overall/Chat</td>
         {cell(lmarena, "text")}
         {cell(livebench, "overall")}
         {cell(openrouter, "overall")}
@@ -344,52 +401,37 @@ def generate_html(data: dict) -> str:
     <tr>
         <td>💻 Coding</td>
         {cell(lmarena, "coding")}
-        <td class="na">—</td>
-        <td class="na">—</td>
-        <td class="na">—</td>
+        {cell(livebench, "coding")}
+        {cell(openrouter, "coding")}
+        {cell(aa, "coding")}
         {cell(llm_stats, "coding")}
     </tr>
     <tr>
         <td>🧮 Math</td>
-        {cell(lmarena, "text")}
         <td class="na">—</td>
+        {cell(livebench, "math")}
         <td class="na">—</td>
-        <td class="na">—</td>
+        {cell(aa, "math")}
         {cell(llm_stats, "math")}
     </tr>
     <tr>
         <td>🧠 Reasoning</td>
         {cell(lmarena, "text")}
-        <td class="na">—</td>
-        <td class="na">—</td>
-        <td class="na">—</td>
-        <td class="na">—</td>
-    </tr>
-    <tr>
-        <td>👁️ Vision</td>
-        {cell(lmarena, "vision")}
-        <td class="na">—</td>
+        {cell(livebench, "reasoning")}
         <td class="na">—</td>
         <td class="na">—</td>
         <td class="na">—</td>
     </tr>
     <tr>
-        <td>🖼️ Text-to-Image</td>
+        <td>🖼️ Image</td>
         {cell(lmarena, "text_to_image")}
         <td class="na">—</td>
-        <td class="na">—</td>
-        <td class="na">—</td>
-        <td class="na">—</td>
-    </tr>
-    <tr>
-        <td>🎬 Text-to-Video</td>
-        {cell(lmarena, "text_to_video")}
-        <td class="na">—</td>
-        <td class="na">—</td>
-        <td class="na">—</td>
-        <td class="na">—</td>
+        {cell(openrouter, "image")}
+        {cell(aa, "image")}
+        {cell(llm_stats, "image")}
     </tr>
     '''
+
     
     html = f'''<!DOCTYPE html>
 <html lang="es">
