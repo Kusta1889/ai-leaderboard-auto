@@ -75,31 +75,47 @@ class LeaderboardScraper:
                 const pageText = document.body.innerText;
                 
                 // Patrones de nombres de modelos conocidos
-                const modelRegex = /(gemini-?[\\w.-]*|gpt-?[\\w.-]*|claude-?[\\w.-]*|grok-?[\\w.-]*|flux-?[\\w.-]*|veo-?[\\w.-]*|chatgpt-?[\\w.-]*|sora-?[\\w.-]*)/gi;
+                const modelPatterns = [
+                    /gemini-?[\\w.-]*/gi,
+                    /gpt-?[\\w.-]*/gi,
+                    /claude-?[\\w.-]*/gi,
+                    /grok-?[\\w.-]*/gi,
+                    /flux-?[\\w.-]*/gi,
+                    /veo-?[\\w.-]*/gi,
+                    /chatgpt-?[\\w.-]*/gi,
+                    /sora-?[\\w.-]*/gi,
+                ];
                 
-                // Categorías y sus headers en la página
-                const categories = {
-                    'text': 'Text',
-                    'coding': 'WebDev',
-                    'vision': 'Vision',
-                    'text_to_image': 'Text-to-Image',
-                    'image_edit': 'Image Edit',
-                    'text_to_video': 'Text-to-Video',
+                // Categorías con patrones únicos para encontrar la sección correcta
+                // (buscamos el header seguido inmediatamente de línea nueva)
+                const categoryPatterns = {
+                    'text': /Text\\n([^\\n]+)/,
+                    'coding': /WebDev\\n([^\\n]+)/,
+                    'vision': /Vision\\n([^\\n]+)/,
+                    'text_to_image': /Text-to-Image\\n([^\\n]+)/,
+                    'image_edit': /Image Edit\\n([^\\n]+)/,
+                    'text_to_video': /Text-to-Video\\n([^\\n]+)/,
                 };
                 
-                for (const [key, catName] of Object.entries(categories)) {
-                    // Encontrar donde empieza esta categoría
-                    const catIndex = pageText.indexOf(catName);
-                    if (catIndex === -1) continue;
+                for (const [key, pattern] of Object.entries(categoryPatterns)) {
+                    // Buscar todas las ocurrencias de este patrón
+                    const matches = pageText.match(new RegExp(pattern.source, 'g'));
                     
-                    // Obtener los próximos 500 caracteres después del header
-                    const section = pageText.substring(catIndex, catIndex + 500);
-                    
-                    // Buscar el primer modelo en esta sección
-                    const modelMatch = section.match(modelRegex);
-                    if (modelMatch && modelMatch.length > 0) {
-                        // El primer match es el líder de esa categoría
-                        results[key] = {model: modelMatch[0].substring(0, 40), score: ''};
+                    if (matches && matches.length > 0) {
+                        // La primera ocurrencia es la sección de rankings
+                        const fullMatch = pageText.match(pattern);
+                        if (fullMatch) {
+                            const modelLine = fullMatch[1];
+                            
+                            // Buscar un modelo en esta línea
+                            for (const modelPattern of modelPatterns) {
+                                const modelMatch = modelLine.match(modelPattern);
+                                if (modelMatch) {
+                                    results[key] = {model: modelMatch[0].substring(0, 40), score: ''};
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
                 
