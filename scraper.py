@@ -59,56 +59,90 @@ class LeaderboardScraper:
         return result[:40] if len(result) > 40 else result
 
     def scrape_lmarena(self, page) -> Dict:
-        """Scrape LMArena via HTTP requests on overview page (bypasses Cloudflare)"""
-        print("📊 Scraping LMArena (HTTP)...")
+        """Scrape LMArena overview page using Playwright (waits for JS render)"""
+        print("📊 Scraping LMArena...")
         
         results = {}
         
         try:
-            # Usar requests para obtener la página overview (no tiene Cloudflare)
-            resp = requests.get(
-                "https://lmarena.ai/leaderboard",
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
-                timeout=20
-            )
+            # Navegar a la página overview que tiene todos los rankings
+            page.goto("https://lmarena.ai/leaderboard", timeout=60000)
+            page.wait_for_timeout(8000)  # Esperar que cargue JS completamente
             
-            if resp.status_code != 200:
-                print(f"    ✗ Error HTTP: {resp.status_code}")
-                return results
-            
-            html = resp.text
-            
-            # Extraer modelo #1 de cada categoría usando patrones
-            # Formato en la página: ## Category\n[model-name](url)\n...
-            
-            categories = {
-                "text": r'## Text\s*\n\[([^\]]+)\]',
-                "coding": r'## WebDev\s*\n\[([^\]]+)\]',
-                "vision": r'## Vision\s*\n\[([^\]]+)\]',
-                "text_to_image": r'## Text-to-Image\s*\n\[([^\]]+)\]',
-                "image_edit": r'## Image Edit\s*\n\[([^\]]+)\]',
-                "text_to_video": r'## Text-to-Video\s*\n\[([^\]]+)\]',
-            }
-            
-            for cat_name, pattern in categories.items():
-                match = re.search(pattern, html)
-                if match:
-                    model = match.group(1).strip()[:40]
+            # Extraer datos usando JavaScript en la página renderizada
+            data = page.evaluate('''() => {
+                const results = {};
+                const text = document.body.innerText;
+                
+                // Categorías a buscar con sus patrones
+                const categories = {
+                    'text': /Text\\s*\\n([\\w\\-\\.]+)/i,
+                    'coding': /WebDev\\s*\\n([\\w\\-\\.]+)/i,
+                    'vision': /Vision\\s*\\n([\\w\\-\\.]+)/i,
+                    'text_to_image': /Text-to-Image\\s*\\n([\\w\\-\\.]+)/i,
+                    'image_edit': /Image Edit\\s*\\n([\\w\\-\\.]+)/i,
+                    'text_to_video': /Text-to-Video\\s*\\n([\\w\\-\\.]+)/i,
+                };
+                
+                // Buscar enlaces por categoría (más confiable)
+                const sections = document.querySelectorAll('h2, [class*="category"], [class*="section"]');
+                
+                // Método alternativo: buscar los primeros links después de cada sección
+                const allText = document.body.innerText;
+                
+                // Patrones para extraer el modelo #1 de cada categoría
+                // Formato típico: "## Text\\ngemini-3-pro\\ngrok-4.1..."
+                const patterns = {
+                    'text': /Text\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
+                    'coding': /WebDev\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
+                    'vision': /Vision\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
+                    'text_to_image': /Text-to-Image\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
+                    'image_edit': /Image Edit\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
+                    'text_to_video': /Text-to-Video\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
+                };
+                
+                for (const [cat, pattern] of Object.entries(patterns)) {
+                    const match = allText.match(pattern);
+                    if (match) {
+                        let model = match[1].trim();
+                        // Limpiar el nombre
+                        model = model.replace(/View all.*$/i, '').trim();
+                        if (model.length > 3 && model.length < 50) {
+                            results[cat] = {model: model.substring(0, 40), score: ''};
+                        }
+                    }
+                }
+                
+                // Si no encontramos por texto, buscar enlaces directos
+                if (Object.keys(results).length === 0) {
+                    const links = document.querySelectorAll('a');
+                    const modelPatterns = ['gemini', 'gpt', 'claude', 'grok', 'flux', 'veo'];
                     
-                    # Buscar score (Elo) - formato: RankModelScoreVotes1...model...SCORE
-                    # El score está después del nombre del modelo en el formato embebido
-                    score = ""
-                    score_pattern = rf'1[A-Za-z]*{re.escape(model[:15])}[^\d]*(\d{{3,4}})'
-                    score_match = re.search(score_pattern, html, re.IGNORECASE)
-                    if score_match:
-                        score = f"{score_match.group(1)} Elo"
-                    
-                    results[cat_name] = {"model": model, "score": score}
-                    print(f"    ✓ {cat_name}: {model} {score}")
-                else:
-                    results[cat_name] = {"model": "—", "score": ""}
-                    print(f"    ⚠ {cat_name}: no encontrado")
-                    
+                    for (const link of links) {
+                        const text = link.innerText?.trim();
+                        const href = link.href || '';
+                        
+                        for (const p of modelPatterns) {
+                            if (text?.toLowerCase().includes(p) && text.length < 50) {
+                                if (!results.text) {
+                                    results.text = {model: text.substring(0, 40), score: ''};
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                return results;
+            }''')
+            
+            if data and len(data) > 0:
+                for cat, info in data.items():
+                    results[cat] = info
+                    print(f"    ✓ {cat}: {info['model']}")
+            else:
+                print("    ⚠ No se pudieron extraer datos")
+                
         except Exception as e:
             print(f"    ✗ Error: {str(e)[:50]}")
         
