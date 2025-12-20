@@ -5,7 +5,7 @@
       "score": ""
     },
     "coding": {
-      "model": "grok-4.1",
+      "model": "claude-opus-4-5-20251101-thinking-32k",
       "score": ""
     },
     "vision": {
@@ -13,15 +13,15 @@
       "score": ""
     },
     "text_to_image": {
-      "model": "gpt-4.5-preview-2025-02-27",
+      "model": "gpt-image-1.5",
       "score": ""
     },
     "image_edit": {
-      "model": "grok-4-search",
+      "model": "chatgpt-image-latest (20251216)",
       "score": ""
     },
     "text_to_video": {
-      "model": "veo-3",
+      "model": "veo-3.1-fast-audio",
       "score": ""
     }
   },
