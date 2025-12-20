@@ -1,27 +1,27 @@
 {
   "lmarena": {
     "text": {
-      "model": "—",
+      "model": "WebDev",
       "score": ""
     },
     "coding": {
-      "model": "—",
+      "model": "Vision",
       "score": ""
     },
     "vision": {
-      "model": "—",
+      "model": "Text-to-Image",
       "score": ""
     },
     "text_to_image": {
-      "model": "—",
+      "model": "Image Edit",
       "score": ""
     },
     "image_edit": {
-      "model": "—",
+      "model": "Search",
       "score": ""
     },
     "text_to_video": {
-      "model": "—",
+      "model": "Image-to-Video",
       "score": ""
     }
   },
