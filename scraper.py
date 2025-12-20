@@ -318,7 +318,7 @@ class LeaderboardScraper:
                 const text = document.body.innerText;
                 const patterns = ['gemini 3', 'gemini-3', 'claude', 'gpt-5', 'gpt-4', 'deepseek'];
                 for (const p of patterns) {
-                    const regex = new RegExp(p + '[a-zA-Z0-9\\s\\.\\-\\(\\)]*', 'i');
+                    const regex = new RegExp(p + '[a-zA-Z0-9 ().-]*', 'i');
                     const m = text.match(regex);
                     if (m) {
                         let model = m[0].trim();
