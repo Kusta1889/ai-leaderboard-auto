@@ -55,107 +55,58 @@ class LeaderboardScraper:
         return result[:40] if len(result) > 40 else result
 
     def scrape_lmarena(self, page) -> Dict:
-        """Scrape LMArena - extrae el modelo #1 de cada categoría"""
-        print("📊 Scraping LMArena...")
-        
-        leaderboards = {
-            "text": "https://lmarena.ai/leaderboard/text",
-            "coding": "https://lmarena.ai/leaderboard/webdev",
-            "vision": "https://lmarena.ai/leaderboard/vision",
-            "text_to_image": "https://lmarena.ai/leaderboard/text-to-image",
-            "text_to_video": "https://lmarena.ai/leaderboard/text-to-video",
-            "image_edit": "https://lmarena.ai/leaderboard/image-edit",
-        }
+        """Scrape LMArena via HTTP requests on overview page (bypasses Cloudflare)"""
+        print("📊 Scraping LMArena (HTTP)...")
         
         results = {}
         
-        for name, url in leaderboards.items():
-            try:
-                print(f"  Checking {name}...")
-                page.goto(url, timeout=45000)
-                page.wait_for_timeout(3000)  # Esperar carga inicial
-                
-                # Detectar y esperar Cloudflare challenge
-                content = page.content().lower()
-                if 'cloudflare' in content or ('security' in content and 'verify' in content) or 'challenge' in content:
-                    print(f"    ⏳ {name}: Cloudflare detectado, esperando...")
-                    page.wait_for_timeout(8000)  # Esperar que pase el challenge
-                    content = page.content().lower()  # Re-verificar
+        try:
+            # Usar requests para obtener la página overview (no tiene Cloudflare)
+            resp = requests.get(
+                "https://lmarena.ai/leaderboard",
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+                timeout=20
+            )
+            
+            if resp.status_code != 200:
+                print(f"    ✗ Error HTTP: {resp.status_code}")
+                return results
+            
+            html = resp.text
+            
+            # Extraer modelo #1 de cada categoría usando patrones
+            # Formato en la página: ## Category\n[model-name](url)\n...
+            
+            categories = {
+                "text": r'## Text\s*\n\[([^\]]+)\]',
+                "coding": r'## WebDev\s*\n\[([^\]]+)\]',
+                "vision": r'## Vision\s*\n\[([^\]]+)\]',
+                "text_to_image": r'## Text-to-Image\s*\n\[([^\]]+)\]',
+                "image_edit": r'## Image Edit\s*\n\[([^\]]+)\]',
+                "text_to_video": r'## Text-to-Video\s*\n\[([^\]]+)\]',
+            }
+            
+            for cat_name, pattern in categories.items():
+                match = re.search(pattern, html)
+                if match:
+                    model = match.group(1).strip()[:40]
                     
-                    if 'cloudflare' in content or ('security' in content and 'verify' in content):
-                        print(f"    ⚠ {name}: Cloudflare no permitió acceso")
-                        results[name] = {"model": "—", "score": ""}
-                        continue
-                
-                # Intentar múltiples selectores
-                try:
-                    # Primero intentar con tabla
-                    data = page.evaluate('''() => {
-                        // Opción 1: tabla con tbody
-                        const row = document.querySelector("table tbody tr");
-                        if (row) {
-                            const cells = row.querySelectorAll("td");
-                            let modelCell = cells[0] || cells[1];
-                            let model = modelCell?.innerText?.trim()?.split("\\n")[0] || "";
-                            model = model.replace(/^#?\\d+\\s*/, "").trim();
-                            let score = "";
-                            for (let i = 1; i < cells.length; i++) {
-                                const m = cells[i]?.innerText?.match(/(\\d{3,4})/);
-                                if (m) { score = m[1] + " Elo"; break; }
-                            }
-                            if (model && model.length > 2) return {model: model.substring(0, 40), score};
-                        }
-                        
-                        // Opción 2: buscar links con nombres de modelos en la página
-                        const links = document.querySelectorAll('a[href*="model"], a[href*="aistudio"], a[href*="openai"], a[href*="anthropic"]');
-                        for (const link of links) {
-                            const text = link.innerText?.trim();
-                            if (text && text.length > 3 && text.length < 50 && !text.includes('View')) {
-                                return {model: text.substring(0, 40), score: ""};
-                            }
-                        }
-                        
-                        // Opción 3: buscar elementos con ranking #1
-                        const rankEls = document.querySelectorAll('[class*="rank"], [class*="first"], [class*="top"]');
-                        for (const el of rankEls) {
-                            const text = el.innerText?.trim();
-                            if (text && text.includes('1') && text.length < 100) {
-                                const modelMatch = text.match(/(?:gemini|gpt|claude|flux|veo|midjourney|dall-e|sora|kling)[^\\n,]{0,30}/i);
-                                if (modelMatch) return {model: modelMatch[0].trim().substring(0, 40), score: ""};
-                            }
-                        }
-                        
-                        // Opción 4: buscar patrones de modelos en todo el texto
-                        const bodyText = document.body.innerText;
-                        const patterns = [
-                            /1\s+(gemini[^\\n,]{0,25})/i,
-                            /1\s+(gpt[^\\n,]{0,25})/i,
-                            /1\s+(claude[^\\n,]{0,25})/i,
-                            /1\s+(flux[^\\n,]{0,20})/i,
-                            /1\s+(veo[^\\n,]{0,20})/i,
-                            /1\s+(chatgpt[^\\n,]{0,25})/i,
-                        ];
-                        for (const p of patterns) {
-                            const m = bodyText.match(p);
-                            if (m) return {model: m[1].trim().substring(0, 40), score: ""};
-                        }
-                        
-                        return null;
-                    }''')
+                    # Buscar score (Elo) - formato: RankModelScoreVotes1...model...SCORE
+                    # El score está después del nombre del modelo en el formato embebido
+                    score = ""
+                    score_pattern = rf'1[A-Za-z]*{re.escape(model[:15])}[^\d]*(\d{{3,4}})'
+                    score_match = re.search(score_pattern, html, re.IGNORECASE)
+                    if score_match:
+                        score = f"{score_match.group(1)} Elo"
                     
-                    if data and data.get("model") and len(data["model"]) > 2:
-                        results[name] = data
-                        print(f"    ✓ {name}: {data['model']}")
-                    else:
-                        results[name] = {"model": "—", "score": ""}
-                        print(f"    ⚠ {name}: no se pudo extraer")
-                except Exception as ex:
-                    results[name] = {"model": "—", "score": ""}
-                    print(f"    ⚠ {name}: error extracción ({str(ex)[:30]})")
+                    results[cat_name] = {"model": model, "score": score}
+                    print(f"    ✓ {cat_name}: {model} {score}")
+                else:
+                    results[cat_name] = {"model": "—", "score": ""}
+                    print(f"    ⚠ {cat_name}: no encontrado")
                     
-            except Exception as e:
-                results[name] = {"model": "—", "score": ""}
-                print(f"    ✗ {name}: error ({str(e)[:30]})")
+        except Exception as e:
+            print(f"    ✗ Error: {str(e)[:50]}")
         
         return results
     
