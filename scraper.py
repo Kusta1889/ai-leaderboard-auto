@@ -59,7 +59,7 @@ class LeaderboardScraper:
         return result[:40] if len(result) > 40 else result
 
     def scrape_lmarena(self, page) -> Dict:
-        """Scrape LMArena overview page using Playwright (waits for JS render)"""
+        """Scrape LMArena overview page using Playwright"""
         print("📊 Scraping LMArena...")
         
         results = {}
@@ -67,55 +67,44 @@ class LeaderboardScraper:
         try:
             # Navegar a la página overview que tiene todos los rankings
             page.goto("https://lmarena.ai/leaderboard", timeout=60000)
-            page.wait_for_timeout(10000)  # Esperar que cargue JS completamente
+            page.wait_for_timeout(10000)  # Esperar que cargue JS
             
-            # Extraer datos buscando patrones de modelos después de cada categoría
+            # Usar un enfoque DOM: buscar enlaces a modelos
             data = page.evaluate('''() => {
                 const results = {};
-                const pageText = document.body.innerText;
+                const links = document.querySelectorAll('a');
+                const foundModels = [];
                 
-                // Patrones de nombres de modelos conocidos
-                const modelPatterns = [
-                    /gemini-?[\\w.-]*/gi,
-                    /gpt-?[\\w.-]*/gi,
-                    /claude-?[\\w.-]*/gi,
-                    /grok-?[\\w.-]*/gi,
-                    /flux-?[\\w.-]*/gi,
-                    /veo-?[\\w.-]*/gi,
-                    /chatgpt-?[\\w.-]*/gi,
-                    /sora-?[\\w.-]*/gi,
-                ];
-                
-                // Categorías con patrones únicos para encontrar la sección correcta
-                // (buscamos el header seguido inmediatamente de línea nueva)
-                const categoryPatterns = {
-                    'text': /Text\\n([^\\n]+)/,
-                    'coding': /WebDev\\n([^\\n]+)/,
-                    'vision': /Vision\\n([^\\n]+)/,
-                    'text_to_image': /Text-to-Image\\n([^\\n]+)/,
-                    'image_edit': /Image Edit\\n([^\\n]+)/,
-                    'text_to_video': /Text-to-Video\\n([^\\n]+)/,
-                };
-                
-                for (const [key, pattern] of Object.entries(categoryPatterns)) {
-                    // Buscar todas las ocurrencias de este patrón
-                    const matches = pageText.match(new RegExp(pattern.source, 'g'));
+                for (const link of links) {
+                    const text = link.textContent?.trim() || '';
+                    const href = link.href || '';
                     
-                    if (matches && matches.length > 0) {
-                        // La primera ocurrencia es la sección de rankings
-                        const fullMatch = pageText.match(pattern);
-                        if (fullMatch) {
-                            const modelLine = fullMatch[1];
-                            
-                            // Buscar un modelo en esta línea
-                            for (const modelPattern of modelPatterns) {
-                                const modelMatch = modelLine.match(modelPattern);
-                                if (modelMatch) {
-                                    results[key] = {model: modelMatch[0].substring(0, 40), score: ''};
-                                    break;
-                                }
-                            }
+                    // Filtrar enlaces de modelos
+                    if (href.includes('aistudio') || href.includes('openai') || 
+                        href.includes('anthropic') || href.includes('x.ai') ||
+                        href.includes('bfl.ai') || href.includes('google.com') ||
+                        href.includes('blog.google')) {
+                        
+                        if (text && text.length > 3 && text.length < 60 && 
+                            !text.includes('View') && !text.includes('http')) {
+                            foundModels.push({
+                                text: text,
+                                y: link.getBoundingClientRect().top
+                            });
                         }
+                    }
+                }
+                
+                // Ordenar por posición vertical
+                foundModels.sort((a, b) => a.y - b.y);
+                
+                // Asignar a categorías por orden (10 modelos por sección)
+                const cats = ['text', 'coding', 'vision', 'text_to_image', 'image_edit', 'text_to_video'];
+                let idx = 0;
+                for (const cat of cats) {
+                    if (idx < foundModels.length) {
+                        results[cat] = {model: foundModels[idx].text.substring(0, 40), score: ''};
+                        idx += 10;
                     }
                 }
                 
