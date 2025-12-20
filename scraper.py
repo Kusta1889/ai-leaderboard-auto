@@ -47,11 +47,15 @@ class LeaderboardScraper:
             r'— See how they compare.*$',
             r'See how they compare.*$',
             r'\s*\|\s*.*$',
+            r'\s+and\s*$',  # Trailing "and"
+            r'\s+or\s*$',   # Trailing "or"
         ]
         result = text
         for pattern in patterns:
             result = re.sub(pattern, '', result, flags=re.IGNORECASE)
-        result = result.strip().rstrip('—-|').strip()
+        # Remove trailing special chars and extra whitespace
+        result = re.sub(r'[—\-|,;:]+\s*$', '', result)
+        result = result.strip()
         return result[:40] if len(result) > 40 else result
 
     def scrape_lmarena(self, page) -> Dict:
@@ -314,9 +318,14 @@ class LeaderboardScraper:
                 const text = document.body.innerText;
                 const patterns = ['gemini 3', 'gemini-3', 'claude', 'gpt-5', 'gpt-4', 'deepseek'];
                 for (const p of patterns) {
-                    const regex = new RegExp(p + '[^\\n,]{0,25}', 'i');
+                    const regex = new RegExp(p + '[a-zA-Z0-9\\s\\.\\-\\(\\)]*', 'i');
                     const m = text.match(regex);
-                    if (m) return {model: m[0].trim().substring(0, 35), score: ""};
+                    if (m) {
+                        let model = m[0].trim();
+                        // Remove trailing "and" or other junk
+                        model = model.replace(/\\s+(and|or)\\s*$/i, '').trim();
+                        return {model: model.substring(0, 35), score: ""};
+                    }
                 }
                 return null;
             }''')
