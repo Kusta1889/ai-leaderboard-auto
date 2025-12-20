@@ -55,18 +55,8 @@ class LeaderboardScraper:
         return result[:40] if len(result) > 40 else result
 
     def scrape_lmarena(self, page) -> Dict:
-        """Scrape LMArena con detección de Cloudflare"""
+        """Scrape LMArena - extrae el modelo #1 de cada categoría"""
         print("📊 Scraping LMArena...")
-        
-        # Fallback data verificada el 15 dic 2025
-        fallback_data = {
-            "text": {"model": "gemini-3-pro", "score": "1492 Elo"},
-            "coding": {"model": "claude-opus-4-5-thinking", "score": "1519 Elo"},
-            "vision": {"model": "gemini-3-pro", "score": "1314 Elo"},
-            "text_to_image": {"model": "gemini-3-pro-image", "score": "1236 Elo"},
-            "text_to_video": {"model": "veo-3.1-fast-audio", "score": "1383 Elo"},
-            "image_edit": {"model": "flux-2-pro", "score": ""},
-        }
         
         leaderboards = {
             "text": "https://lmarena.ai/leaderboard/text",
@@ -74,7 +64,7 @@ class LeaderboardScraper:
             "vision": "https://lmarena.ai/leaderboard/vision",
             "text_to_image": "https://lmarena.ai/leaderboard/text-to-image",
             "text_to_video": "https://lmarena.ai/leaderboard/text-to-video",
-            "image_edit": "https://lmarena.ai/leaderboard/image-editing",
+            "image_edit": "https://lmarena.ai/leaderboard/image-edit",
         }
         
         results = {}
@@ -82,46 +72,85 @@ class LeaderboardScraper:
         for name, url in leaderboards.items():
             try:
                 print(f"  Checking {name}...")
-                page.goto(url, timeout=30000)
-                page.wait_for_timeout(3000)
+                page.goto(url, timeout=45000)
+                page.wait_for_timeout(5000)  # Más tiempo para cargar JS
                 
                 # Detectar Cloudflare
                 content = page.content().lower()
                 if 'cloudflare' in content or ('security' in content and 'verify' in content):
-                    print(f"    ⚡ {name}: usando fallback (Cloudflare)")
-                    results[name] = fallback_data.get(name, {"model": "—", "score": ""})
+                    print(f"    ⚠ {name}: Cloudflare detectado")
+                    results[name] = {"model": "—", "score": ""}
                     continue
                 
-                # Intentar extraer tabla
+                # Intentar múltiples selectores
                 try:
-                    page.wait_for_selector("table tbody tr", timeout=10000)
+                    # Primero intentar con tabla
                     data = page.evaluate('''() => {
+                        // Opción 1: tabla con tbody
                         const row = document.querySelector("table tbody tr");
-                        if (!row) return null;
-                        const cells = row.querySelectorAll("td");
-                        let model = cells[0]?.innerText?.trim()?.split("\\n")[0] || "";
-                        model = model.replace(/^#?\\d+\\s*/, "");
-                        let score = "";
-                        for (let i = 1; i < cells.length; i++) {
-                            const m = cells[i]?.innerText?.match(/(\\d{3,4})/);
-                            if (m) { score = m[1] + " Elo"; break; }
+                        if (row) {
+                            const cells = row.querySelectorAll("td");
+                            let modelCell = cells[0] || cells[1];
+                            let model = modelCell?.innerText?.trim()?.split("\\n")[0] || "";
+                            model = model.replace(/^#?\\d+\\s*/, "").trim();
+                            let score = "";
+                            for (let i = 1; i < cells.length; i++) {
+                                const m = cells[i]?.innerText?.match(/(\\d{3,4})/);
+                                if (m) { score = m[1] + " Elo"; break; }
+                            }
+                            if (model && model.length > 2) return {model: model.substring(0, 40), score};
                         }
-                        return {model, score};
+                        
+                        // Opción 2: buscar links con nombres de modelos en la página
+                        const links = document.querySelectorAll('a[href*="model"], a[href*="aistudio"], a[href*="openai"], a[href*="anthropic"]');
+                        for (const link of links) {
+                            const text = link.innerText?.trim();
+                            if (text && text.length > 3 && text.length < 50 && !text.includes('View')) {
+                                return {model: text.substring(0, 40), score: ""};
+                            }
+                        }
+                        
+                        // Opción 3: buscar elementos con ranking #1
+                        const rankEls = document.querySelectorAll('[class*="rank"], [class*="first"], [class*="top"]');
+                        for (const el of rankEls) {
+                            const text = el.innerText?.trim();
+                            if (text && text.includes('1') && text.length < 100) {
+                                const modelMatch = text.match(/(?:gemini|gpt|claude|flux|veo|midjourney|dall-e|sora|kling)[^\\n,]{0,30}/i);
+                                if (modelMatch) return {model: modelMatch[0].trim().substring(0, 40), score: ""};
+                            }
+                        }
+                        
+                        // Opción 4: buscar patrones de modelos en todo el texto
+                        const bodyText = document.body.innerText;
+                        const patterns = [
+                            /1\s+(gemini[^\\n,]{0,25})/i,
+                            /1\s+(gpt[^\\n,]{0,25})/i,
+                            /1\s+(claude[^\\n,]{0,25})/i,
+                            /1\s+(flux[^\\n,]{0,20})/i,
+                            /1\s+(veo[^\\n,]{0,20})/i,
+                            /1\s+(chatgpt[^\\n,]{0,25})/i,
+                        ];
+                        for (const p of patterns) {
+                            const m = bodyText.match(p);
+                            if (m) return {model: m[1].trim().substring(0, 40), score: ""};
+                        }
+                        
+                        return null;
                     }''')
                     
                     if data and data.get("model") and len(data["model"]) > 2:
                         results[name] = data
                         print(f"    ✓ {name}: {data['model']}")
                     else:
-                        results[name] = fallback_data.get(name, {"model": "—", "score": ""})
-                        print(f"    ⚡ {name}: usando fallback")
-                except:
-                    results[name] = fallback_data.get(name, {"model": "—", "score": ""})
-                    print(f"    ⚡ {name}: usando fallback")
+                        results[name] = {"model": "—", "score": ""}
+                        print(f"    ⚠ {name}: no se pudo extraer")
+                except Exception as ex:
+                    results[name] = {"model": "—", "score": ""}
+                    print(f"    ⚠ {name}: error extracción ({str(ex)[:30]})")
                     
             except Exception as e:
-                results[name] = fallback_data.get(name, {"model": "—", "score": ""})
-                print(f"    ⚡ {name}: fallback ({str(e)[:30]})")
+                results[name] = {"model": "—", "score": ""}
+                print(f"    ✗ {name}: error ({str(e)[:30]})")
         
         return results
     
