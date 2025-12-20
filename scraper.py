@@ -69,54 +69,50 @@ class LeaderboardScraper:
             page.goto("https://lmarena.ai/leaderboard", timeout=60000)
             page.wait_for_timeout(10000)  # Esperar que cargue JS
             
-            # Usar un enfoque DOM: buscar enlaces a modelos
-            data = page.evaluate('''() => {
-                const results = {};
-                const links = document.querySelectorAll('a');
-                const foundModels = [];
-                
-                for (const link of links) {
-                    const text = link.textContent?.trim() || '';
-                    const href = link.href || '';
-                    
-                    // Filtrar enlaces de modelos
-                    if (href.includes('aistudio') || href.includes('openai') || 
-                        href.includes('anthropic') || href.includes('x.ai') ||
-                        href.includes('bfl.ai') || href.includes('google.com') ||
-                        href.includes('blog.google')) {
-                        
-                        if (text && text.length > 3 && text.length < 60 && 
-                            !text.includes('View') && !text.includes('http')) {
-                            foundModels.push({
-                                text: text,
-                                y: link.getBoundingClientRect().top
-                            });
-                        }
-                    }
-                }
-                
-                // Ordenar por posición vertical
-                foundModels.sort((a, b) => a.y - b.y);
-                
-                // Asignar a categorías por orden (10 modelos por sección)
-                const cats = ['text', 'coding', 'vision', 'text_to_image', 'image_edit', 'text_to_video'];
-                let idx = 0;
-                for (const cat of cats) {
-                    if (idx < foundModels.length) {
-                        results[cat] = {model: foundModels[idx].text.substring(0, 40), score: ''};
-                        idx += 10;
-                    }
-                }
-                
-                return results;
-            }''')
+            # Categorías a extraer (h2 text -> key)
+            categories = {
+                'Text': 'text',
+                'WebDev': 'coding',
+                'Vision': 'vision',
+                'Text-to-Image': 'text_to_image',
+                'Image Edit': 'image_edit',
+                'Text-to-Video': 'text_to_video',
+            }
             
-            if data and len(data) > 0:
-                for cat, info in data.items():
-                    results[cat] = info
-                    print(f"    ✓ {cat}: {info['model']}")
-            else:
-                print("    ⚠ No se pudieron extraer datos")
+            for h2_text, key in categories.items():
+                try:
+                    # Usar XPath para encontrar el h2 con el texto de la categoría
+                    # y luego navegar a la tabla dentro del mismo contenedor
+                    model = page.evaluate(f'''() => {{
+                        // Buscar el h2 con el texto de la categoría
+                        const h2s = document.querySelectorAll('h2');
+                        for (const h2 of h2s) {{
+                            if (h2.textContent.trim() === '{h2_text}') {{
+                                // Buscar la tabla más cercana (puede ser hermano o en contenedor padre)
+                                const container = h2.closest('a') || h2.parentElement;
+                                if (!container) continue;
+                                
+                                const table = container.querySelector('table tbody tr');
+                                if (table) {{
+                                    // El modelo está en un enlace dentro de la primera fila
+                                    const modelLink = table.querySelector('a[title]') || table.querySelector('a');
+                                    if (modelLink) {{
+                                        return modelLink.title || modelLink.textContent?.trim() || '';
+                                    }}
+                                }}
+                            }}
+                        }}
+                        return null;
+                    }}''')
+                    
+                    if model and len(model) > 2:
+                        results[key] = {"model": model[:40], "score": ""}
+                        print(f"    ✓ {key}: {model[:40]}")
+                    else:
+                        print(f"    ⚠ {key}: no encontrado")
+                        
+                except Exception as ex:
+                    print(f"    ✗ {key}: {str(ex)[:30]}")
                 
         except Exception as e:
             print(f"    ✗ Error: {str(e)[:50]}")
