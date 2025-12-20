@@ -67,69 +67,39 @@ class LeaderboardScraper:
         try:
             # Navegar a la página overview que tiene todos los rankings
             page.goto("https://lmarena.ai/leaderboard", timeout=60000)
-            page.wait_for_timeout(8000)  # Esperar que cargue JS completamente
+            page.wait_for_timeout(10000)  # Esperar que cargue JS completamente
             
-            # Extraer datos usando JavaScript en la página renderizada
+            # Extraer datos buscando patrones de modelos después de cada categoría
             data = page.evaluate('''() => {
                 const results = {};
-                const text = document.body.innerText;
+                const pageText = document.body.innerText;
                 
-                // Categorías a buscar con sus patrones
+                // Patrones de nombres de modelos conocidos
+                const modelRegex = /(gemini-?[\\w.-]*|gpt-?[\\w.-]*|claude-?[\\w.-]*|grok-?[\\w.-]*|flux-?[\\w.-]*|veo-?[\\w.-]*|chatgpt-?[\\w.-]*|sora-?[\\w.-]*)/gi;
+                
+                // Categorías y sus headers en la página
                 const categories = {
-                    'text': /Text\\s*\\n([\\w\\-\\.]+)/i,
-                    'coding': /WebDev\\s*\\n([\\w\\-\\.]+)/i,
-                    'vision': /Vision\\s*\\n([\\w\\-\\.]+)/i,
-                    'text_to_image': /Text-to-Image\\s*\\n([\\w\\-\\.]+)/i,
-                    'image_edit': /Image Edit\\s*\\n([\\w\\-\\.]+)/i,
-                    'text_to_video': /Text-to-Video\\s*\\n([\\w\\-\\.]+)/i,
+                    'text': 'Text',
+                    'coding': 'WebDev',
+                    'vision': 'Vision',
+                    'text_to_image': 'Text-to-Image',
+                    'image_edit': 'Image Edit',
+                    'text_to_video': 'Text-to-Video',
                 };
                 
-                // Buscar enlaces por categoría (más confiable)
-                const sections = document.querySelectorAll('h2, [class*="category"], [class*="section"]');
-                
-                // Método alternativo: buscar los primeros links después de cada sección
-                const allText = document.body.innerText;
-                
-                // Patrones para extraer el modelo #1 de cada categoría
-                // Formato típico: "## Text\\ngemini-3-pro\\ngrok-4.1..."
-                const patterns = {
-                    'text': /Text\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
-                    'coding': /WebDev\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
-                    'vision': /Vision\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
-                    'text_to_image': /Text-to-Image\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
-                    'image_edit': /Image Edit\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
-                    'text_to_video': /Text-to-Video\\n([\\w\\-\\.\\(\\) ]+?)\\n/,
-                };
-                
-                for (const [cat, pattern] of Object.entries(patterns)) {
-                    const match = allText.match(pattern);
-                    if (match) {
-                        let model = match[1].trim();
-                        // Limpiar el nombre
-                        model = model.replace(/View all.*$/i, '').trim();
-                        if (model.length > 3 && model.length < 50) {
-                            results[cat] = {model: model.substring(0, 40), score: ''};
-                        }
-                    }
-                }
-                
-                // Si no encontramos por texto, buscar enlaces directos
-                if (Object.keys(results).length === 0) {
-                    const links = document.querySelectorAll('a');
-                    const modelPatterns = ['gemini', 'gpt', 'claude', 'grok', 'flux', 'veo'];
+                for (const [key, catName] of Object.entries(categories)) {
+                    // Encontrar donde empieza esta categoría
+                    const catIndex = pageText.indexOf(catName);
+                    if (catIndex === -1) continue;
                     
-                    for (const link of links) {
-                        const text = link.innerText?.trim();
-                        const href = link.href || '';
-                        
-                        for (const p of modelPatterns) {
-                            if (text?.toLowerCase().includes(p) && text.length < 50) {
-                                if (!results.text) {
-                                    results.text = {model: text.substring(0, 40), score: ''};
-                                }
-                                break;
-                            }
-                        }
+                    // Obtener los próximos 500 caracteres después del header
+                    const section = pageText.substring(catIndex, catIndex + 500);
+                    
+                    // Buscar el primer modelo en esta sección
+                    const modelMatch = section.match(modelRegex);
+                    if (modelMatch && modelMatch.length > 0) {
+                        // El primer match es el líder de esa categoría
+                        results[key] = {model: modelMatch[0].substring(0, 40), score: ''};
                     }
                 }
                 
