@@ -1,5 +1,30 @@
 {
-  "lmarena": {},
+  "lmarena": {
+    "text": {
+      "model": "—",
+      "score": ""
+    },
+    "coding": {
+      "model": "—",
+      "score": ""
+    },
+    "vision": {
+      "model": "—",
+      "score": ""
+    },
+    "text_to_image": {
+      "model": "—",
+      "score": ""
+    },
+    "image_edit": {
+      "model": "—",
+      "score": ""
+    },
+    "text_to_video": {
+      "model": "—",
+      "score": ""
+    }
+  },
   "livebench": {
     "overall": {
       "model": "GPT-5.1 Codex Max XHigh",
@@ -33,6 +58,18 @@
     }
   },
   "artificial_analysis": {
+    "overall": {
+      "model": "Gemini 3 Pro Preview (high)",
+      "score": ""
+    },
+    "coding": {
+      "model": "Gemini 3 Pro Preview (high)",
+      "score": ""
+    },
+    "math": {
+      "model": "Gemini 3 Pro Preview (high)",
+      "score": ""
+    },
     "image": {
       "model": "FLUX.1 Kontext[max]",
       "score": ""
