@@ -1,27 +1,27 @@
 {
   "lmarena": {
     "text": {
-      "model": "gemini-3-pro",
-      "score": "1492 Elo"
+      "model": "—",
+      "score": ""
     },
     "coding": {
-      "model": "claude-opus-4-5-thinking",
-      "score": "1519 Elo"
+      "model": "—",
+      "score": ""
     },
     "vision": {
-      "model": "gemini-3-pro",
-      "score": "1314 Elo"
+      "model": "—",
+      "score": ""
     },
     "text_to_image": {
-      "model": "gemini-3-pro-image",
-      "score": "1236 Elo"
+      "model": "—",
+      "score": ""
     },
     "text_to_video": {
-      "model": "veo-3.1-fast-audio",
-      "score": "1383 Elo"
+      "model": "—",
+      "score": ""
     },
     "image_edit": {
-      "model": "flux-2-pro",
+      "model": "—",
       "score": ""
     }
   },
