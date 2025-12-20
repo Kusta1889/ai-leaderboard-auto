@@ -1,27 +1,27 @@
 {
   "lmarena": {
     "text": {
-      "model": "WebDev",
+      "model": "gemini-3-pro",
       "score": ""
     },
     "coding": {
-      "model": "Vision",
+      "model": "gemini-3-pro",
       "score": ""
     },
     "vision": {
-      "model": "Text-to-Image",
+      "model": "gemini-3-pro",
       "score": ""
     },
     "text_to_image": {
-      "model": "Image Edit",
+      "model": "gemini-3-pro",
       "score": ""
     },
     "image_edit": {
-      "model": "Search",
+      "model": "gemini-3-pro",
       "score": ""
     },
     "text_to_video": {
-      "model": "Image-to-Video",
+      "model": "gemini-3-pro",
       "score": ""
     }
   },
