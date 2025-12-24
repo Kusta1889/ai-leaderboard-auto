@@ -1,38 +1,13 @@
 {
-  "lmarena": {
-    "text": {
-      "model": "gemini-3-pro",
-      "score": ""
-    },
-    "coding": {
-      "model": "claude-opus-4-5-20251101-thinking-32k",
-      "score": ""
-    },
-    "vision": {
-      "model": "gemini-3-pro",
-      "score": ""
-    },
-    "text_to_image": {
-      "model": "gpt-image-1.5",
-      "score": ""
-    },
-    "image_edit": {
-      "model": "chatgpt-image-latest (20251216)",
-      "score": ""
-    },
-    "text_to_video": {
-      "model": "veo-3.1-fast-audio",
-      "score": ""
-    }
-  },
+  "lmarena": {},
   "livebench": {
     "overall": {
       "model": "GPT-5.1 Codex Max XHigh",
-      "score": "76.21"
+      "score": "75.33"
     },
     "reasoning": {
       "model": "GPT-5.1 Codex Max XHigh",
-      "score": "90.80"
+      "score": "84.60"
     },
     "coding": {
       "model": "Claude 4 Sonnet",
