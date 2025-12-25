@@ -2,16 +2,16 @@
   "lmarena": {},
   "livebench": {
     "overall": {
-      "model": "GPT-5.1 Codex Max XHigh",
-      "score": "75.33"
+      "model": "Claude 4.5 Opus Thinking High Effort",
+      "score": "76.20"
     },
     "reasoning": {
-      "model": "GPT-5.1 Codex Max XHigh",
-      "score": "84.60"
+      "model": "GPT-5.1 Codex Max",
+      "score": "84.57"
     },
     "coding": {
-      "model": "Claude 4 Sonnet",
-      "score": "80.74"
+      "model": "GPT-5.1 Codex Max",
+      "score": "81.38"
     },
     "math": {
       "model": "Claude 4.5 Opus Thinking High Effort",
