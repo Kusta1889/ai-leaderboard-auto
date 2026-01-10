@@ -20,15 +20,15 @@
   },
   "openrouter": {
     "overall": {
-      "model": "Gemini 2.5 Flash",
+      "model": "Gemini 3 Flash Preview",
       "score": ""
     },
     "coding": {
-      "model": "Gemini 2.5 Flash",
+      "model": "Gemini 3 Flash Preview",
       "score": ""
     },
     "image": {
-      "model": "Gemini 2.5 Flash",
+      "model": "Gemini 3 Flash Preview",
       "score": ""
     }
   },
