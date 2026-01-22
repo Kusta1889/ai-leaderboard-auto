@@ -1,26 +1,5 @@
 {
-  "lmarena": {
-    "text": {
-      "model": "gemini-3-pro",
-      "score": ""
-    },
-    "vision": {
-      "model": "gemini-3-pro",
-      "score": ""
-    },
-    "text_to_image": {
-      "model": "gpt-image-1.5",
-      "score": ""
-    },
-    "image_edit": {
-      "model": "chatgpt-image-latest (20251216)",
-      "score": ""
-    },
-    "text_to_video": {
-      "model": "veo-3.1-fast-audio",
-      "score": ""
-    }
-  },
+  "lmarena": {},
   "livebench": {
     "overall": {
       "model": "Claude 4.5 Opus Thinking High Effort",
@@ -55,15 +34,15 @@
   },
   "artificial_analysis": {
     "overall": {
-      "model": "Gemini 3 Pro Preview (high)",
+      "model": "Gemini 3 Pro Preview (high).",
       "score": ""
     },
     "coding": {
-      "model": "Gemini 3 Pro Preview (high)",
+      "model": "Gemini 3 Pro Preview (high).",
       "score": ""
     },
     "math": {
-      "model": "Gemini 3 Pro Preview (high)",
+      "model": "Gemini 3 Pro Preview (high).",
       "score": ""
     },
     "image": {
