@@ -1,26 +1,5 @@
 {
-  "lmarena": {
-    "text": {
-      "model": "gemini-3-pro",
-      "score": ""
-    },
-    "vision": {
-      "model": "gemini-3-pro",
-      "score": ""
-    },
-    "text_to_image": {
-      "model": "gpt-image-1.5-high-fidelity",
-      "score": ""
-    },
-    "image_edit": {
-      "model": "chatgpt-image-latest-high-fidelity (2025",
-      "score": ""
-    },
-    "text_to_video": {
-      "model": "veo-3.1-audio",
-      "score": ""
-    }
-  },
+  "lmarena": {},
   "livebench": {
     "overall": {
       "model": "Claude 4.5 Opus Thinking High Effort",
