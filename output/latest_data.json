@@ -23,12 +23,12 @@
   },
   "livebench": {
     "overall": {
-      "model": "Claude 4.5 Opus Thinking High Effort",
-      "score": "75.96"
+      "model": "Claude 4.6 Opus Thinking High Effort",
+      "score": "76.33"
     },
     "reasoning": {
-      "model": "GPT-5.1 Codex Max High",
-      "score": "83.65"
+      "model": "Claude 4.6 Opus Thinking High Effort",
+      "score": "88.67"
     },
     "coding": {
       "model": "GPT-5.2 Codex",
