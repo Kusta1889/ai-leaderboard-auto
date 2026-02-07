@@ -1,7 +1,7 @@
 {
   "lmarena": {
     "text": {
-      "model": "gemini-3-pro",
+      "model": "claude-opus-4-6",
       "score": ""
     },
     "vision": {
@@ -55,15 +55,15 @@
   },
   "artificial_analysis": {
     "overall": {
-      "model": "Gemini 3 Pro Preview (high).",
+      "model": "Gemini 3 Pro Preview (high)",
       "score": ""
     },
     "coding": {
-      "model": "Gemini 3 Pro Preview (high).",
+      "model": "Gemini 3 Pro Preview (high)",
       "score": ""
     },
     "math": {
-      "model": "Gemini 3 Pro Preview (high).",
+      "model": "Gemini 3 Pro Preview (high)",
       "score": ""
     },
     "image": {
