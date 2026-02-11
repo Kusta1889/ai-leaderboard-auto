@@ -17,7 +17,7 @@
       "score": ""
     },
     "text_to_video": {
-      "model": "veo-3.1-audio",
+      "model": "veo-3.1-audio-1080p",
       "score": ""
     }
   },
