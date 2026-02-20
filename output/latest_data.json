@@ -55,15 +55,15 @@
   },
   "artificial_analysis": {
     "overall": {
-      "model": "Gemini 3 Pro Preview (high)",
+      "model": "Gemini 3.1 Pro Preview",
       "score": ""
     },
     "coding": {
-      "model": "Gemini 3 Pro Preview (high)",
+      "model": "Gemini 3.1 Pro Preview",
       "score": ""
     },
     "math": {
-      "model": "Gemini 3 Pro Preview (high)",
+      "model": "Gemini 3.1 Pro Preview",
       "score": ""
     },
     "image": {
