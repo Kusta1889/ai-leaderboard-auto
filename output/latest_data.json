@@ -1,7 +1,7 @@
 {
   "lmarena": {
     "text": {
-      "model": "claude-opus-4-6",
+      "model": "claude-opus-4-6-thinking",
       "score": ""
     },
     "vision": {
@@ -9,7 +9,7 @@
       "score": ""
     },
     "text_to_image": {
-      "model": "gpt-image-1.5-high-fidelity",
+      "model": "gemini-3.1-flash-image-preview (nano-ban",
       "score": ""
     },
     "image_edit": {
