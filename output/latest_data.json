@@ -23,8 +23,8 @@
   },
   "livebench": {
     "overall": {
-      "model": "Claude 4.6 Opus Thinking High Effort",
-      "score": "76.33"
+      "model": "Gemini 3.1 Pro Preview High*",
+      "score": "79.93"
     },
     "reasoning": {
       "model": "Claude 4.6 Opus Thinking High Effort",
