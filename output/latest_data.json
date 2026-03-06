@@ -23,8 +23,8 @@
   },
   "livebench": {
     "overall": {
-      "model": "Gemini 3.1 Pro Preview High*",
-      "score": "79.93"
+      "model": "GPT-5.4 Thinking xHigh Effort",
+      "score": "80.28"
     },
     "reasoning": {
       "model": "Claude 4.6 Opus Thinking High Effort",
@@ -35,8 +35,8 @@
       "score": "83.62"
     },
     "math": {
-      "model": "GPT-5.2 High",
-      "score": "93.17"
+      "model": "GPT-5.4 Thinking xHigh Effort",
+      "score": "94.15"
     }
   },
   "openrouter": {
